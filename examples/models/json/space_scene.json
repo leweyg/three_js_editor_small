@@ -1,0 +1,52 @@
+{
+  "name": "space_scene",
+  "userData": {},
+  "children": [
+    {
+      "name": "ship1",
+      "position": [
+        -2.5,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        0.7853975,
+        0
+      ],
+      "userData": {},
+      "source": "../obj/spacekit/craft_miner.obj"
+    },
+    {
+      "name": "ship2",
+      "position": [
+        2.5,
+        0,
+        -1
+      ],
+      "rotation": [
+        0,
+        -0.7853975,
+        0
+      ],
+      "userData": {},
+      "source": "../obj/spacekit/craft_miner.obj"
+    }
+  ],
+  "metadata": {
+    "version": 0.2,
+    "type": "lewcid_object",
+    "camera": {
+      "position": [
+        1.816428987251279,
+        5.405288226275062,
+        8.142152845162864
+      ],
+      "rotation": [
+        -0.5643300905259814,
+        0.19111315944597457,
+        0.11966471765321685
+      ]
+    }
+  }
+}

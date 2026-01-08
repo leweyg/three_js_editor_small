@@ -13,19 +13,32 @@ function ViewportInfo( editor ) {
 	container.setFontSize( '12px' );
 	container.setColor( '#fff' );
 
-	const objectsText = new UIText( '0' ).setMarginLeft( '6px' );
-	const verticesText = new UIText( '0' ).setMarginLeft( '6px' );
-	const trianglesText = new UIText( '0' ).setMarginLeft( '6px' );
+	const objectsText = new UIText( '0' ); //.setMarginLeft( '6px' );
+	const verticesText = new UIText( '0' ); //.setMarginLeft( '6px' );
+	const trianglesText = new UIText( '0' ); //.setMarginLeft( '6px' );
 	const frametimeText = new UIText( '0' ).setMarginLeft( '6px' );
 
-	container.add( new UIText( strings.getKey( 'viewport/info/objects' ) ).setTextTransform( 'lowercase' ) );
-	container.add( objectsText, new UIBreak() );
-	container.add( new UIText( strings.getKey( 'viewport/info/vertices' ) ).setTextTransform( 'lowercase' ) );
-	container.add( verticesText, new UIBreak() );
-	container.add( new UIText( strings.getKey( 'viewport/info/triangles' ) ).setTextTransform( 'lowercase' ) );
-	container.add( trianglesText, new UIBreak() );
-	container.add( new UIText( strings.getKey( 'viewport/info/frametime' ) ).setTextTransform( 'lowercase' ) );
-	container.add( frametimeText, new UIBreak() );
+	container.add(new UIText("Quadrant Touch Controls:"), new UIBreak() );
+	container.add(new UIText("bottom right = look-around"), new UIBreak() );
+	container.add(new UIText("bottom left = walk-around"), new UIBreak() );
+	container.add(new UIText("top left = fly-up"), new UIBreak() );
+	container.add(new UIText("top right = zoom"), new UIBreak() );
+
+	container.add( new UIBreak() );
+	//container.add( new UIText( strings.getKey( 'viewport/info/vertices' ) ).setTextTransform( 'lowercase' ) );
+	//container.add( verticesText, new UIText("/") );
+	//container.add( new UIText( strings.getKey( 'viewport/info/triangles' ) ).setTextTransform( 'lowercase' ) );
+	//container.add( trianglesText, new UIBreak() );
+	//container.add( new UIText( strings.getKey( 'viewport/info/frametime' ) ).setTextTransform( 'lowercase' ) );
+	const wantStats = false;
+	if (wantStats) {
+		container.add( new UIText( "objs@ms=" ) );
+		container.add( objectsText );
+		container.add( new UIText( "@" ) );
+		container.add( frametimeText );
+		container.add( new UIBreak() );
+	}
+	
 
 	signals.objectAdded.add( update );
 	signals.objectRemoved.add( update );

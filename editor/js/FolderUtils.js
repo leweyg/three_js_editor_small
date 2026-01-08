@@ -181,6 +181,49 @@ var FolderUtils = {
         FolderUtils.AddDefaultLight(editor);
     },
 
+    ImportByPath_GLTF  : async function(path,callback_blob,parentScene=null) {
+        
+        const { DRACOLoader } = await import( 'three/addons/loaders/DRACOLoader.js' );
+        const { GLTFLoader } = await import( 'three/addons/loaders/GLTFLoader.js' );
+
+        const dracoLoader = new DRACOLoader();
+        dracoLoader.setDecoderPath( '../examples/js/libs/draco/gltf/' );
+
+        const loader = new GLTFLoader();
+        loader.setDRACOLoader( dracoLoader );
+        loader.load( path, function ( result ) {
+            const scene = result.scene;
+            FolderUtils.ImportByPath_THREEOBJ(path, scene, parentScene);
+            callback_blob(scene);
+        });
+    },
+
+    ImportByPath_THREEOBJ : function(path, scene, parentScene) {
+        var obj = scene;
+        obj.name = FolderUtils.PathDisplayName(path);
+        obj.userData = {
+            source : FolderUtils.PathRelativeToCurrent(path)
+        };
+        if (!parentScene) {
+            FolderUtils.EnsureMainSceneNode(editor,(parent)=>{
+                parent.add(obj);
+            });
+            if (editor.selected) {
+                obj.position.copy(editor.selected.position);
+                obj.rotation.copy(editor.selected.rotation);
+                obj.scale.copy(editor.selected.scale);
+            }
+            editor.selected = obj;
+            editor.signals.objectSelected.dispatch( obj );
+        } else {
+            parentScene.add(obj);
+            FolderUtils.EditorRefresh();
+            setTimeout(function(){
+                FolderUtils.EditorRefresh();
+            }, 0.5);
+        }
+    },
+
     ImportByPath_OBJ : async function(path,callback_blob,parentScene=null) {
         if (path.endsWith(".obj")) {
             const { MTLLoader } = await import( 'three/addons/loaders/MTLLoader.js' );
@@ -189,27 +232,9 @@ var FolderUtils = {
             function loadObjWithMaterials(materials) {
                 var loader = new OBJLoader();
                 if (materials) loader.setMaterials(materials);
-                loader.load(path, function (object) {
-                    object.name = FolderUtils.PathDisplayName(path);
-                    object.userData = {
-                        source : FolderUtils.PathRelativeToCurrent(path)
-                    };
-                    if (!parentScene) {
-                        FolderUtils.EnsureMainSceneNode(editor,(parent)=>{
-                            parent.add(object);
-                        });
-                        if (editor.selected) {
-                            object.position.copy(editor.selected.position);
-                            object.rotation.copy(editor.selected.rotation);
-                            object.scale.copy(editor.selected.scale);
-                        }
-                        editor.selected = object;
-                        editor.signals.objectSelected.dispatch( object );
-                    } else {
-                        parentScene.add(object);
-                        FolderUtils.EditorRefresh();
-                    }
-                    if (callback_blob) callback_blob(object);
+                loader.load(path, function (scene) {
+                    FolderUtils.ImportByPath_THREEOBJ(path, scene, parentScene);
+                    if (callback_blob) callback_blob(scene);
                 });
             }
 
@@ -464,6 +489,9 @@ var FolderUtils = {
         var lpath = path.toLowerCase();
         if (lpath.endsWith(".obj")) {
             return await FolderUtils.ImportByPath_OBJ(path, callback_blob,parentScene);
+        }
+        if (lpath.endsWith(".glb") || lpath.endsWith(".glb")) {
+            return await FolderUtils.ImportByPath_GLTF(path, callback_blob,parentScene);
         }
         if (lpath.endsWith(".mtl")) {
             return await FolderUtils.ImportByPath_MTL(path, callback_blob);

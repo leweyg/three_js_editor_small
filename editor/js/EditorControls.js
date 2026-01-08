@@ -22,7 +22,10 @@ class EditorControls extends THREE.EventDispatcher {
 		var box = new THREE.Box3();
 
 		var STATE = { NONE: - 1, ROTATE: 0, ZOOM: 1, PAN: 2 };
+		var SUBSTATE = { INWARD:0, FACING:1 };
 		var state = STATE.NONE;
+		var subState = SUBSTATE.INWARD;
+		var useQuadrantStyle = true;
 
 		var center = this.center;
 		var normalMatrix = new THREE.Matrix3();
@@ -65,12 +68,16 @@ class EditorControls extends THREE.EventDispatcher {
 
 		};
 
-		this.pan = function ( delta ) {
+		this.pan = function ( delta, sameFloor=false ) {
 
 			var distance = object.position.distanceTo( center );
 
 			delta.multiplyScalar( distance * scope.panSpeed );
 			delta.applyMatrix3( normalMatrix.getNormalMatrix( object.matrix ) );
+
+			if (sameFloor) {
+				delta.y = 0.0;
+			}
 
 			object.position.add( delta );
 			center.add( delta );
@@ -180,6 +187,31 @@ class EditorControls extends THREE.EventDispatcher {
 
 		function onMouseDown( event ) {
 
+			if (useQuadrantStyle) {
+
+				var touchX = event.clientX;
+				var touchY = event.clientY;
+				var midX = event.target.clientWidth / 2.0;
+				var midY = event.target.clientHeight / 2.0;
+				var isLeftSideOfCanvas = (touchX < midX);
+				var isTopSideOfCanvas = (touchY < midY);
+				if (isLeftSideOfCanvas) {
+					state = STATE.PAN;
+					if (isTopSideOfCanvas) {
+						subState = SUBSTATE.FACING;
+					} else {
+						subState = SUBSTATE.INWARD;
+					}
+				} else {
+					if (isTopSideOfCanvas) {
+						state = STATE.ZOOM;
+					} else {
+						state = STATE.ROTATE;
+					}
+				}
+
+			} else {
+
 			if ( event.button === 0 ) {
 
 				state = STATE.ROTATE;
@@ -193,6 +225,8 @@ class EditorControls extends THREE.EventDispatcher {
 				state = STATE.PAN;
 
 			}
+
+			} // end !useQuadrantStyle
 
 			pointerOld.set( event.clientX, event.clientY );
 
@@ -215,7 +249,16 @@ class EditorControls extends THREE.EventDispatcher {
 
 			} else if ( state === STATE.PAN ) {
 
-				scope.pan( delta.set( - movementX, movementY, 0 ) );
+				if ( subState === SUBSTATE.FACING ) {
+
+					scope.pan( delta.set( - movementX, movementY, 0 ) );
+
+				} else if ( subState === SUBSTATE.INWARD ) {
+
+					var sameFloor = true;
+					scope.pan( delta.set( movementX, 0, movementY ), sameFloor );
+
+				}
 
 			}
 
@@ -267,14 +310,60 @@ class EditorControls extends THREE.EventDispatcher {
 
 		// touch
 
+		var touchStateCreate = function() {
+			return {
+				posNow : new THREE.Vector3(),
+				posStart : new THREE.Vector3(),
+				posPrevious : new THREE.Vector3(),
+				posDelta : new THREE.Vector3(),
+				targetSize : new THREE.Vector3(),
+				touchData : null,
+				startTop : false,
+				startLeft : true,
+			};
+		}
+
 		var touches = [ new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3() ];
 		var prevTouches = [ new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3() ];
-
+		var touchById = {};
 		var prevDistance = null;
+
+		function touchIndices(event) {
+			var ans = [];
+			for (var i=0; i<event.touches.length; i++) {
+				ans.push(1*i);
+			}
+			return ans;
+		}
+
+		function touchStateGet(event,rawIndex) {
+			var from = event.touches[ 1 * rawIndex ];
+			var fromId = from.identifier;
+			if (!(fromId in touchById)) {
+				touchById[fromId] = touchStateCreate();
+			}
+			var res = touchById[fromId];
+			res.touchData = from;
+			return res;
+		}
 
 		function touchStart( event ) {
 
 			if ( scope.enabled === false ) return;
+
+			if (useQuadrantStyle) {
+
+			for (var touchIndexRaw in touchIndices(event)) {
+				var touchState = touchStateGet(event,touchIndexRaw);
+				var from = touchState.touchData;
+				var to = touchState;
+				to.posNow.set(from.clientX, from.clientY, 0);
+				to.posStart.copy(to.posNow);
+				to.posPrevious.copy(to.posNow);
+				to.targetSize.set(from.target.clientWidth, from.target.clientHeight, 1);
+			}
+
+			} else {
 
 			switch ( event.touches.length ) {
 
@@ -291,9 +380,10 @@ class EditorControls extends THREE.EventDispatcher {
 
 			}
 
+			} // end ! useQuadrantStyle
+
 			prevTouches[ 0 ].copy( touches[ 0 ] );
 			prevTouches[ 1 ].copy( touches[ 1 ] );
-
 		}
 
 
@@ -318,6 +408,69 @@ class EditorControls extends THREE.EventDispatcher {
 
 			}
 
+			if (useQuadrantStyle) {
+
+				for (var touchIndexRaw in touchIndices(event)) {
+					var touchState = touchStateGet(event,touchIndexRaw);
+					touchState.posNow.set( touchState.touchData.clientX,
+						touchState.touchData.clientY );
+
+					var curPos = touchState.posNow;
+					var prevPos = touchState.posPrevious;
+					var delta = touchState.posDelta;
+					delta.copy(curPos);
+					delta.sub(prevPos);
+					prevPos.copy(curPos);
+
+					var startedAt = touchState.posStart;
+					var fullSize = touchState.targetSize;
+					var touchX = startedAt.x;
+					var touchY = startedAt.y;
+					var midX = fullSize.x / 2.0;
+					var midY = fullSize.y / 2.0;
+					var isLeftSideOfCanvas = (touchX < midX);
+					var isTopSideOfCanvas = (touchY < midY);
+					if (isLeftSideOfCanvas) {
+						state = STATE.PAN;
+						if (isTopSideOfCanvas) {
+							subState = SUBSTATE.FACING;
+						} else {
+							subState = SUBSTATE.INWARD;
+						}
+					} else {
+						state = STATE.ROTATE;
+						if (isTopSideOfCanvas) {
+							//state = STATE.ZOOM;
+						}
+					}
+					if (state == STATE.ROTATE) {
+						var scl = -0.75;
+						delta.x *= scl;
+						delta.y *= scl;
+						scope.rotate( delta );
+					} else if (state == STATE.ZOOM) {
+						// todo
+					} else if (state == STATE.PAN) {
+						var sameFloor = false;
+						if (subState == SUBSTATE.FACING) {
+							var scl = 0.5;
+							delta.x *= scl;
+							delta.y *= scl;
+							delta.set( -delta.x, delta.y, 0 );
+						} else if (subState == SUBSTATE.INWARD) {
+							var scl = 1.0;
+							delta.x *= scl;
+							delta.y *= scl;
+							delta.set( delta.x, 0, delta.y );
+							sameFloor = true;
+						}
+						scope.pan(delta, sameFloor);
+					}
+				}
+
+			} else {
+
+			// Touch logic:
 			switch ( event.touches.length ) {
 
 				case 1:
@@ -344,6 +497,8 @@ class EditorControls extends THREE.EventDispatcher {
 					break;
 
 			}
+
+			} // end ! useQuadrantStyle
 
 			prevTouches[ 0 ].copy( touches[ 0 ] );
 			prevTouches[ 1 ].copy( touches[ 1 ] );

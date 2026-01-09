@@ -490,7 +490,7 @@ var FolderUtils = {
         if (lpath.endsWith(".obj")) {
             return await FolderUtils.ImportByPath_OBJ(path, callback_blob,parentScene);
         }
-        if (lpath.endsWith(".glb") || lpath.endsWith(".glb")) {
+        if (lpath.endsWith(".glb") || lpath.endsWith(".gltf")) {
             return await FolderUtils.ImportByPath_GLTF(path, callback_blob,parentScene);
         }
         if (lpath.endsWith(".mtl")) {

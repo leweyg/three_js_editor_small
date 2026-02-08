@@ -413,6 +413,9 @@ var FolderUtils = {
                 ans.children.push(to);
             }
         }
+        if (ans.userData && Object.keys(ans.userData).length==0) {
+            delete ans.userData;
+        }
         return ans;
     },
 
@@ -449,6 +452,7 @@ var FolderUtils = {
             }
 
             if (callback_blob) callback_blob(sceneObject);
+            FolderUtils.EditorRefresh();
         });
 
     },

@@ -48,6 +48,7 @@ function SidebarFolder( editor ) {
 			'pwd' : "Current Directory",
 			'git_clone' : "Git Clone...",
 			'git_status' : "Git Status",
+			'git_diff' : "Git Diff",
 			'custom_select_file' : "Custom: Select File",
 			'custom_match_files' : "Custom: Match files",
 			'custom_common_materials' : "Custom: Common Material",
@@ -77,6 +78,12 @@ function SidebarFolder( editor ) {
 				case 'git_status':
 					FolderUtils.ShellExecute("git status",(res) => {
 						alert(res);
+					});
+					break;
+				case 'git_diff':
+					FolderUtils.ShellExecute("git diff > diff.txt",(res) => {
+						//alert(res);
+						window.open("diff.txt", '_blank').focus();
 					});
 					break;
 				case 'file_list_update':

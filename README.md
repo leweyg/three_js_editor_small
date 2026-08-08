@@ -2,7 +2,27 @@
 
 Demo: https://leweyg.github.io/three_js_editor_small/
 
+![image](examples/models/png/three_js_editor_small.png)
+
 Code: https://github.com/leweyg/three_js_editor_small 
+
+![image](examples/models/png/json_scene.png)
+
+## Setup
+
+``git clone https://github.com/leweyg/three_js_editor_small.git``
+
+``./three_js_editor_small/run_editor.sh (opens http://localhost:5678/three_js_editor_small/)``
+
+With content (save and then push):
+
+``git clone https://github.com/leweyg/heroine_dawn.git``
+
+``open http://localhost:5678/three_js_editor_small/editor/?file_path=../../heroine_dawn/web/models/map_1.json``
+
+
+
+## Description
 
 A small (~20MB) local and web hostable Three.js editor,
 with URL-parameter based file loading, local shell integration (allows folder browsing and git functions).

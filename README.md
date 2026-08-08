@@ -12,9 +12,9 @@ Code: https://github.com/leweyg/three_js_editor_small
 
 ``git clone https://github.com/leweyg/three_js_editor_small.git``
 
-``./three_js_editor_small/run_editor.sh (opens http://localhost:5678/three_js_editor_small/)``
+``./three_js_editor_small/run_editor.sh`` (opens http://localhost:5678/three_js_editor_small/)
 
-With content (save and then push):
+With content (edits are save-able back to the git):
 
 ``git clone https://github.com/leweyg/heroine_dawn.git``
 

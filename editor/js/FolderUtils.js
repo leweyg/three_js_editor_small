@@ -185,6 +185,7 @@ var FolderUtils = {
         
         const { DRACOLoader } = await import( 'three/addons/loaders/DRACOLoader.js' );
         const { GLTFLoader } = await import( 'three/addons/loaders/GLTFLoader.js' );
+        const { clone: cloneSkeleton } = await import( 'three/addons/utils/SkeletonUtils.js' );
 
         const dracoLoader = new DRACOLoader();
         dracoLoader.setDecoderPath( '../examples/js/libs/draco/gltf/' );
@@ -193,8 +194,14 @@ var FolderUtils = {
         loader.setDRACOLoader( dracoLoader );
         loader.load( path, function ( result ) {
             const scene = result.scene;
+            scene.name = FolderUtils.PathDisplayName(path);
+            scene.animations.push( ...result.animations );
+            scene.updateMatrixWorld( true );
+            scene._assetCacheClone = function () {
+                return cloneSkeleton( scene );
+            };
             FolderUtils.ImportByPath_THREEOBJ(path, scene, parentScene);
-            callback_blob(scene);
+            if (callback_blob) callback_blob(scene);
         });
     },
 
